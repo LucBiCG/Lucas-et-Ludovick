@@ -1,5 +1,7 @@
 #include <SFML/Audio.h>
 #include <SFML/Graphics.h>
+#include <stdlib.h>
+#include <time.h>
 
 int main(void)
 {
@@ -7,39 +9,83 @@ int main(void)
     sfRenderWindow* window;
     sfEvent event;
 
-    /* Create the main window */
+    int joueur = 1;
+    int grille[6][7] = { 0 }; // tableau du jeu
+
     window = sfRenderWindow_create(mode, "Puissance 4", sfClose, NULL);
     if (!window)
-    {
         return -1;
-    }
 
     srand((unsigned int)time(NULL));
 
-    /* Start the game loop */
     while (sfRenderWindow_isOpen(window))
     {
-        /* Process events */
         while (sfRenderWindow_pollEvent(window, &event))
         {
-            /* Close window : exit */
             if (event.type == sfEvtClosed)
-            {
                 sfRenderWindow_close(window);
-            }
 
+            if (event.type == sfEvtMouseButtonPressed)
+            {
+                if (event.mouseButton.button == sfMouseLeft)
+                {
+                    int x = event.mouseButton.x;
+                    int colonne = x / 70;
+
+                    if (colonne >= 0 && colonne < 7)
+                    {
+                        for (int i = 5; i >= 0; i--)
+                        {
+                            if (grille[i][colonne] == 0)
+                            {
+                                grille[i][colonne] = joueur;
+
+                                if (joueur == 1)
+                                    joueur = 2;
+                                else
+                                    joueur = 1;
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        sfColor fondgrille = sfColor_fromRGB(54, 19, 191);
+        sfRenderWindow_clear(window, fondgrille);
+
+        /* Ici tu pourras afficher la grille */
+        sfCircleShape* pion = sfCircleShape_create();
+        sfCircleShape_setRadius(pion, 30);
+        sfCircleShape_setFillColor(pion, sfWhite);
+
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < 7; j++)
+            {
+                sfVector2f position;
+                position.x = j * 70 + 10;
+                position.y = i * 70 + 10;
+               
+                if (grille[i][j] == 1)
+                    sfCircleShape_setFillColor(pion, sfRed);
+                else if (grille[i][j] == 2)
+                    sfCircleShape_setFillColor(pion, sfYellow);
+                else
+                    sfCircleShape_setFillColor(pion, sfWhite);
+
+                sfCircleShape_setPosition(pion, position);
+                sfRenderWindow_drawCircleShape(window, pion, NULL);
+            }
         }
 
+        sfCircleShape_destroy(pion);
 
-        /* Clear the screen */
-        sfRenderWindow_clear(window, sfBlack);
-
-        /* Update the window */
         sfRenderWindow_display(window);
     }
 
-    /* Cleanup resources */
     sfRenderWindow_destroy(window);
 
-    return 1;
+    return 0;
 }
