@@ -36,6 +36,28 @@ int main(void) {
     sfText_setCharacterSize(texteIntro, 90);
     sfText_setFillColor(texteIntro, sfColor_fromRGB(246, 184, 72));
 
+   
+    sfTexture* tRose = sfTexture_createFromFile("C:/Users/Lucas/Documents/GitHub/Puissance4/Sword1.png", NULL);
+    sfSprite* sRose = sfSprite_create();
+    sfSprite_setTexture(sRose, tRose, sfTrue);
+
+    sfTexture* tBleue = sfTexture_createFromFile("C:/Users/Lucas/Documents/GitHub/Puissance4/Sword2.png", NULL);
+    sfSprite* sBleue = sfSprite_create();
+    sfSprite_setTexture(sBleue, tBleue, sfTrue);
+
+    
+    sfVector2f scaleSword = { 0.15f, 0.15f };
+    
+    sfSprite_setScale(sRose, scaleSword);
+    sfSprite_setScale(sBleue, scaleSword);
+    
+
+
+
+
+
+
+
     while (sfRenderWindow_isOpen(window)) {
         
 
@@ -44,7 +66,7 @@ int main(void) {
             gererMenu(window, event, spriteMenu, texteIntro);
             break;
         case JEU:
-            gererJeu(window, event, carre);
+            gererJeu(window, event, carre, sBleue, sRose);
             break;
         case VICTOIRE:
             gererVictoire(window, event, texteVictoire);
@@ -60,5 +82,10 @@ int main(void) {
     sfRectangleShape_destroy(carre);
     sfRenderWindow_destroy(window);
 
+    sfSprite_destroy(sRose);
+    sfTexture_destroy(tRose);
+
+    sfSprite_destroy(sBleue);
+    sfTexture_destroy(tBleue);
     return 0;
 }

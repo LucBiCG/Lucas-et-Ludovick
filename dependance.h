@@ -16,6 +16,11 @@ extern Etatjeu sceneActuelle;
 extern int gagnantGlobal;
 extern int JoueurActuel;
 
+extern float animY;        
+extern int animCol;        
+extern int animTargetRow;  
+extern int isAnimating;
+
 void dessinerGrille(sfRenderWindow* window, sfRectangleShape* rectangle);
 void jouerCoup(int colonne);
 int verifierVictoire();
@@ -24,3 +29,4 @@ int verifierVictoire();
 void gererMenu(sfRenderWindow* window, sfEvent event, sfSprite* spriteMenu, sfText* texteIntro);
 void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre);
 void gererVictoire(sfRenderWindow* window, sfEvent event, sfText* texteVictoire);
+void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sfSprite* sRose, sfSprite* sBleue);

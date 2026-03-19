@@ -124,26 +124,86 @@ void gererMenu(sfRenderWindow* window, sfEvent event, sfSprite* spriteMenu,sfTex
 
 
 // --- SCÈNE JEU ---
-void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre) {
+float animY = -100.0f;
+int animCol = 0;
+int animTargetRow = 0;
+int isAnimating = 0;
+
+void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sfSprite* sRose, sfSprite* sBleue) {
+
+    // 1. GESTION DES ÉVÉNEMENTS (Uniquement si on n'est pas en train d'animer)
     while (sfRenderWindow_pollEvent(window, &event)) {
         if (event.type == sfEvtClosed) sfRenderWindow_close(window);
 
-        if (event.type == sfEvtMouseButtonPressed && event.mouseButton.button == sfMouseLeft) {
+        if (!isAnimating && event.type == sfEvtMouseButtonPressed && event.mouseButton.button == sfMouseLeft) {
             int col = (event.mouseButton.x - 20) / (TAILLE_CASE + ESPACEMENT);
-            if (col >= 0 && col < NB_COL) {
-                jouerCoup(col);
 
-                int resultat = verifierVictoire();
-                if (resultat != 0) {
-                    gagnantGlobal = resultat;
-                    sceneActuelle = VICTOIRE; 
+            if (col >= 0 && col < NB_COL) {
+                // On cherche la ligne d'arrivée
+                for (int j = NB_LIG - 1; j >= 0; j--) {
+                    if (Tableau[col][j] == 0) {
+                        // ON NE REMPLIT PAS LE TABLEAU TOUT DE SUITE
+                        // On lance l'animation
+                        isAnimating = 1;
+                        animCol = col;
+                        animTargetRow = j;
+                        animY = -50.0f; // Départ au-dessus de l'écran
+                        break;
+                    }
                 }
             }
         }
     }
 
+    // 2. MISE À JOUR DE L'ANIMATION
+    if (isAnimating) {
+        float vitesseChute = 0.50f; 
+        float targetYPixel = animTargetRow * (TAILLE_CASE + ESPACEMENT) + 20;
+
+        if (animY < targetYPixel) {
+            animY += vitesseChute; // L'épée descend
+        }
+        else {
+            // L'épée est arrivée !
+            Tableau[animCol][animTargetRow] = JoueurActuel; 
+            isAnimating = 0; // Animation finie
+            JoueurActuel = (JoueurActuel == 1) ? 2 : 1; 
+
+            // On vérifie la victoire après la chute
+            int resultat = verifierVictoire();
+            if (resultat != 0) {
+                gagnantGlobal = resultat;
+                sceneActuelle = VICTOIRE;
+            }
+        }
+    }
+
+    // 3. RENDU
     sfRenderWindow_clear(window, sfColor_fromRGB(54, 19, 191));
     dessinerGrille(window, carre);
+
+   
+    if (isAnimating) {
+        sfSprite* epeeAnim = (JoueurActuel == 1) ? sRose : sBleue;
+        sfVector2f pos = { (float)(animCol * (TAILLE_CASE + ESPACEMENT) + 20), animY };
+        sfSprite_setPosition(epeeAnim, pos);
+        sfRenderWindow_drawSprite(window, epeeAnim, NULL);
+    }
+    
+    else {
+        sfVector2i m = sfMouse_getPositionRenderWindow(window);
+        int c = (m.x - 20) / (TAILLE_CASE + ESPACEMENT);
+        if (c >= 0 && c < NB_COL) {
+            sfSprite* epeeHover = (JoueurActuel == 1) ? sRose : sBleue;
+            sfVector2f posH = { (float)(c * (TAILLE_CASE + ESPACEMENT) + 20), -10.0f };
+            sfSprite_setPosition(epeeHover, posH);
+            
+            sfSprite_setColor(epeeHover, sfColor_fromRGBA(255, 255, 255, 150));
+            sfRenderWindow_drawSprite(window, epeeHover, NULL);
+            sfSprite_setColor(epeeHover, sfWhite); 
+        }
+    }
+
     sfRenderWindow_display(window);
 }
 
