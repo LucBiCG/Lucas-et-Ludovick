@@ -5,6 +5,22 @@
 #include <time.h>
 #include <stdio.h> 
 
+
+// IA
+int jouerIA(int grille[6][7])
+{
+    int colonne;
+
+    while (1)
+    {
+        colonne = rand() % 7; // colonne aléatoire
+
+        // vérifier si la colonne n'est pas pleine
+        if (grille[0][colonne] == 0)
+            return colonne;
+    }
+}
+
 // Condition Victoire
 int verifierVictoire(int grille[6][7]) {
 
@@ -83,43 +99,67 @@ int main(void)
     {
         while (sfRenderWindow_pollEvent(window, &event))
         {
+           
             if (event.type == sfEvtClosed)
                 sfRenderWindow_close(window);
 
-            if (event.type == sfEvtMouseButtonPressed)
+            if (event.type == sfEvtMouseButtonPressed && joueur == 1)
             {
-                if (event.mouseButton.button == sfMouseLeft)
+                int x = event.mouseButton.x;
+                int colonne = x / 70;
+
+                if (colonne >= 0 && colonne < 7)
                 {
-                    int x = event.mouseButton.x;
-                    int colonne = x / 70;
-
-                    if (colonne >= 0 && colonne < 7)
+                    for (int i = 5; i >= 0; i--)
                     {
-                        for (int i = 5; i >= 0; i--)
+                        if (grille[i][colonne] == 0)
                         {
-                            if (grille[i][colonne] == 0)
+                            grille[i][colonne] = joueur;
+
+                            int gagnant = verifierVictoire(grille);
+
+                            if (gagnant != 0)
                             {
-                                grille[i][colonne] = joueur;
-                                int gagnant = verifierVictoire(grille);
-
-                                if (gagnant != 0)
-                                {
-                                    
-                                                    ("Joueur %d gagne !\n", gagnant);
-                                    sfRenderWindow_close(window); // ou arrêter le jeu
-                                }
-                                if (joueur == 1)
-                                    joueur = 2;
-                                else
-                                    joueur = 1;
-
-                                break;
+                                printf("Joueur %d gagne !\n", gagnant);
+                                sfRenderWindow_close(window);
                             }
+
+                            joueur = 2; // tour IA
+                            break;
                         }
                     }
                 }
             }
+        } if (joueur == 2)
+        {
+            
+
+            sfSleep(sfMilliseconds(300));
+
+            int colonne = jouerIA(grille);
+
+            for (int i = 5; i >= 0; i--)
+            {
+                if (grille[i][colonne] == 0)
+                {
+                    grille[i][colonne] = joueur;
+
+                    int gagnant = verifierVictoire(grille);
+
+                    if (gagnant != 0)
+                    {
+                        printf("Joueur %d gagne !\n", gagnant);
+                        sfRenderWindow_close(window);
+                    }
+
+                    joueur = 1; // retour joueur
+                    
+                    break;
+                }
+            }
         }
+           
+    
 
         sfColor fondgrille = sfColor_fromRGB(54, 19, 191);
         sfRenderWindow_clear(window, fondgrille);
