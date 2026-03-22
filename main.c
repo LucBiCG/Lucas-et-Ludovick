@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <SFML/Audio.h>
 #include <SFML/Graphics.h>
+<<<<<<< HEAD
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h> 
@@ -199,6 +200,7 @@ int main(void)
    
     return 0;
 }
+=======
 #include "dependance.h"
 
 int gagnantGlobal = 0;
