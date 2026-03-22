@@ -21,6 +21,8 @@ extern int animCol;
 extern int animTargetRow;  
 extern int isAnimating;
 
+extern int contreIA;
+
 void dessinerGrille(sfRenderWindow* window, sfRectangleShape* rectangle);
 void jouerCoup(int colonne);
 int verifierVictoire();
@@ -30,3 +32,4 @@ void gererMenu(sfRenderWindow* window, sfEvent event, sfSprite* spriteMenu, sfTe
 void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre);
 void gererVictoire(sfRenderWindow* window, sfEvent event, sfText* texteVictoire);
 void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sfSprite* sRose, sfSprite* sBleue);
+void tourIA();

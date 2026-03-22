@@ -5,6 +5,7 @@
 
 int JoueurActuel = 1;
 int Tableau[NB_COL][NB_LIG] = { 0 };
+int contreIA = 1; 
 
 void dessinerGrille(sfRenderWindow* window, sfRectangleShape* rectangle) {
     for (int i = 0; i < NB_COL; i++) {
@@ -95,29 +96,31 @@ int verifierVictoire() {
 
 
 // --- SCÈNE MENU ---
-void gererMenu(sfRenderWindow* window, sfEvent event, sfSprite* spriteMenu,sfText* texteIntro) {
+void gererMenu(sfRenderWindow* window, sfEvent event, sfSprite* spriteMenu, sfText* texteIntro) {
     while (sfRenderWindow_pollEvent(window, &event)) {
         if (event.type == sfEvtClosed) sfRenderWindow_close(window);
-        if (event.type == sfEvtMouseButtonPressed) sceneActuelle = JEU;
+
+        if (event.type == sfEvtKeyPressed) {
+            if (event.key.code == sfKeyA) {
+                contreIA = 1; 
+                sceneActuelle = JEU;
+            }
+            if (event.key.code == sfKeyP) {
+                contreIA = 0; 
+                sceneActuelle = JEU;
+            }
+        }
     }
 
     sfRenderWindow_clear(window, sfBlack);
-
-    //image de fond
     sfRenderWindow_drawSprite(window, spriteMenu, NULL);
+
     
+    sfText_setString(texteIntro, "PUISSANCE 4\n[A] vs IA\n[P] vs AMI");
+    sfText_setCharacterSize(texteIntro, 50); 
+    sfText_setPosition(texteIntro, (sfVector2f) { 120, 50 });
 
-    char message[50];
-    sprintf(message, "PUISSSANCE \n       4 !");
-    sfText_setString(texteIntro, message);
-
-    //texte
-    sfVector2f posTexte = { 0, 75 };
-    sfText_setPosition(texteIntro, posTexte);
-
-    //texte
     sfRenderWindow_drawText(window, texteIntro, NULL);
-
     sfRenderWindow_display(window);
 }
 
@@ -131,7 +134,7 @@ int isAnimating = 0;
 
 void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sfSprite* sRose, sfSprite* sBleue) {
 
-    // 1. GESTION DES ÉVÉNEMENTS (Uniquement si on n'est pas en train d'animer)
+    // 1. GESTION DES ÉVÉNEMENTS 
     while (sfRenderWindow_pollEvent(window, &event)) {
         if (event.type == sfEvtClosed) sfRenderWindow_close(window);
 
@@ -139,15 +142,15 @@ void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sf
             int col = (event.mouseButton.x - 20) / (TAILLE_CASE + ESPACEMENT);
 
             if (col >= 0 && col < NB_COL) {
-                // On cherche la ligne d'arrivée
+                
                 for (int j = NB_LIG - 1; j >= 0; j--) {
                     if (Tableau[col][j] == 0) {
-                        // ON NE REMPLIT PAS LE TABLEAU TOUT DE SUITE
-                        // On lance l'animation
+                        
+                        
                         isAnimating = 1;
                         animCol = col;
                         animTargetRow = j;
-                        animY = -50.0f; // Départ au-dessus de l'écran
+                        animY = -50.0f; 
                         break;
                     }
                 }
@@ -161,15 +164,15 @@ void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sf
         float targetYPixel = animTargetRow * (TAILLE_CASE + ESPACEMENT) + 20;
 
         if (animY < targetYPixel) {
-            animY += vitesseChute; // L'épée descend
+            animY += vitesseChute; 
         }
         else {
-            // L'épée est arrivée !
+            
             Tableau[animCol][animTargetRow] = JoueurActuel; 
-            isAnimating = 0; // Animation finie
+            isAnimating = 0; 
             JoueurActuel = (JoueurActuel == 1) ? 2 : 1; 
 
-            // On vérifie la victoire après la chute
+           
             int resultat = verifierVictoire();
             if (resultat != 0) {
                 gagnantGlobal = resultat;
@@ -177,7 +180,10 @@ void gererJeu(sfRenderWindow* window, sfEvent event, sfRectangleShape* carre, sf
             }
         }
     }
-
+    // --- LOGIQUE IA ---
+    if (contreIA && JoueurActuel == 2 && !isAnimating && sceneActuelle == JEU) {
+        tourIA();
+    }
     // 3. RENDU
     sfRenderWindow_clear(window, sfColor_fromRGB(54, 19, 191));
     dessinerGrille(window, carre);
@@ -236,4 +242,58 @@ void gererVictoire(sfRenderWindow* window, sfEvent event, sfText* texteVictoire)
     sfRenderWindow_drawText(window, texteVictoire, NULL);
 
     sfRenderWindow_display(window);
+}
+
+
+
+void tourIA() {
+    if (isAnimating) return;
+
+    int colChoisie = -1;
+
+    // 1. ANALYSE
+    for (int c = 0; c < NB_COL; c++) {
+        for (int l = NB_LIG - 1; l >= 0; l--) {
+            if (Tableau[c][l] == 0) {
+                Tableau[c][l] = 2; 
+                if (verifierVictoire() == 2) colChoisie = c;
+                Tableau[c][l] = 0; 
+                break;
+            }
+        }
+        if (colChoisie != -1) break;
+    }
+
+    // 2. BLOCAGE 
+    if (colChoisie == -1) {
+        for (int c = 0; c < NB_COL; c++) {
+            for (int l = NB_LIG - 1; l >= 0; l--) {
+                if (Tableau[c][l] == 0) {
+                    Tableau[c][l] = 1; 
+                    if (verifierVictoire() == 1) colChoisie = c;
+                    Tableau[c][l] = 0;
+                    break;
+                }
+            }
+            if (colChoisie != -1) break;
+        }
+    }
+
+    // 3. HASARD 
+    if (colChoisie == -1) {
+        do {
+            colChoisie = rand() % NB_COL;
+        } while (Tableau[colChoisie][0] != 0);
+    }
+
+    
+    for (int j = NB_LIG - 1; j >= 0; j--) {
+        if (Tableau[colChoisie][j] == 0) {
+            isAnimating = 1;
+            animCol = colChoisie;
+            animTargetRow = j;
+            animY = animY - 100.0f;
+            break;
+        }
+    }
 }
